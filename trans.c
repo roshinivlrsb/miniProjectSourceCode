@@ -18,6 +18,9 @@ void textFile(FILE *readPtr);
 void updateRecord(FILE *fPtr);
 void newRecord(FILE *fPtr);
 void deleteRecord(FILE *fPtr);
+void displayAll(FILE *fPtr);
+void searchRecord(FILE *fPtr); 
+
 
 int main(int argc, char *argv[])
 {
@@ -30,9 +33,8 @@ int main(int argc, char *argv[])
         printf("%s: File could not be opened.\n", argv[0]);
         exit(-1);
     }
-
     // enable user to specify action
-    while ((choice = enterChoice()) != 5)
+    while ((choice = enterChoice()) != 7)
     {
         switch (choice)
         {
@@ -51,6 +53,14 @@ int main(int argc, char *argv[])
         // delete existing record
         case 4:
             deleteRecord(cfPtr);
+            break;
+         case 5:
+             searchRecord(cfPtr);
+            break;
+        case 6:
+             displayAll(cfPtr);
+             break;
+        case 7:
             break;
         // display if user does not select valid choice
         default:
@@ -215,4 +225,60 @@ unsigned int enterChoice(void)
 
     scanf("%u", &menuChoice); // receive choice from user
     return menuChoice;
-} // end function enterChoice
+} 
+void displayAll(FILE *fPtr)
+{
+    struct clientData client = {0,"","",0.0};
+
+    rewind(fPtr);
+
+    printf("\n%-6s%-16s%-11s%10s\n","Acct","Last Name","First Name","Balance");
+
+    while(fread(&client,sizeof(struct clientData),1,fPtr))
+    {
+        if(client.acctNum != 0)
+        {
+            printf("%-6d%-16s%-11s%10.2f\n",
+            client.acctNum,client.lastName,client.firstName,client.balance);
+        }
+    }
+}
+
+// NEW FEATURE - SEARCH ACCOUNT
+void searchRecord(FILE *fPtr)
+{
+    unsigned int account;
+
+    struct clientData client = {0, "", "", 0.0};
+
+    printf("Enter account number to search: ");
+    scanf("%u", &account);
+
+    fseek(fPtr,
+          (account - 1) * sizeof(struct clientData),
+          SEEK_SET);
+
+    fread(&client,
+          sizeof(struct clientData),
+          1,
+          fPtr);
+
+    if (client.acctNum == 0)
+    {
+        printf("Account not found.\n");
+    }
+    else
+    {
+        printf("\nAccount Found:\n");
+
+        printf("Account Number : %u\n",
+               client.acctNum);
+
+        printf("Last Name      : %s\n",
+               client.lastName);
+
+        printf("First Name     : %s\n",
+               client.firstName);
+
+        printf("Balance        : %.2f\n",              
+               client.balance);    }}
